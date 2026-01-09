@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Caminos de Conciencia</title>
+
+<style>
+body{
+    margin:0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: linear-gradient(135deg,#141e30,#243b55);
+    color:white;
+    text-align:center;
+}
+
+h1{
+    margin-top:20px;
+}
+
+#game{
+    max-width:750px;
+    margin:30px auto;
+    background:rgba(0,0,0,0.6);
+    padding:30px;
+    border-radius:15px;
+}
+
+#story{
+    font-size:20px;
+    margin-bottom:20px;
+}
+
+button{
+    display:block;
+    width:100%;
+    margin:10px 0;
+    padding:15px;
+    font-size:16px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    background:#00d2ff;
+    color:#000;
+    transition:0.3s;
+}
+
+button:hover{
+    background:#fbc531;
+}
+
+#score{
+    margin-top:20px;
+    font-size:18px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🌱 CAMINOS DE CONCIENCIA</h1>
+<p>Juego de decisiones éticas</p>
+
+<div id="game">
+    <p id="story"></p>
+    <div id="choices"></div>
+    <p id="score">Puntaje ético: 0</p>
+</div>
+
+<!-- SONIDOS -->
+<audio id="goodSound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_5c857bd1cc.mp3"></audio>
+<audio id="badSound" src="https://cdn.pixabay.com/audio/2022/03/10/audio_98f79a244a.mp3"></audio>
+
+<script>
+let score = 0;
+let scene = 0;
+
+const scenes = [
+{t:"Encuentras una cartera con dinero en la escuela.", c:[
+{o:"Buscar al dueño y devolverla", p:4, n:1},
+{o:"Quedártela", p:-4, n:1}
+]},
+{t:"Ves que hacen bullying a un compañero.", c:[
+{o:"Defenderlo", p:4, n:2},
+{o:"Ignorar la situación", p:-4, n:2}
+]},
+{t:"Copiaste una tarea de internet.", c:[
+{o:"Aceptar el error", p:4, n:3},
+{o:"Mentir", p:-4, n:3}
+]},
+{t:"Un amigo te pide copiar en el examen.", c:[
+{o:"Negarte", p:4, n:4},
+{o:"Ayudarle a copiar", p:-4, n:4}
+]},
+{t:"Publicas un comentario ofensivo en redes.", c:[
+{o:"Borrarlo y disculparte", p:4, n:5},
+{o:"Dejarlo publicado", p:-4, n:5}
+]},
+{t:"Rompes algo que no es tuyo.", c:[
+{o:"Decir la verdad", p:4, n:6},
+{o:"Culpar a otro", p:-4, n:6}
+]},
+{t:"Ves basura tirada en la calle.", c:[
+{o:"Recogerla", p:4, n:7},
+{o:"Ignorarla", p:-4, n:7}
+]},
+{t:"Te ofrecen hacer trampa para ganar.", c:[
+{o:"Rechazar", p:4, n:8},
+{o:"Aceptar", p:-4, n:8}
+]},
+{t:"Un compañero necesita ayuda académica.", c:[
+{o:"Ayudarlo", p:4, n:9},
+{o:"No ayudar", p:-4, n:9}
+]},
+{t:"Difundes un rumor falso.", c:[
+{o:"Detenerlo", p:4, n:10},
+{o:"Seguir difundiendo", p:-4, n:10}
+]},
+{t:"Llegas tarde a clase.", c:[
+{o:"Aceptar la responsabilidad", p:4, n:11},
+{o:"Inventar una excusa", p:-4, n:11}
+]},
+{t:"Te encuentras respuestas del examen.", c:[
+{o:"No usarlas", p:4, n:12},
+{o:"Usarlas", p:-4, n:12}
+]},
+{t:"Un amigo roba algo pequeño.", c:[
+{o:"Decirle que lo devuelva", p:4, n:13},
+{o:"Encubrirlo", p:-4, n:13}
+]},
+{t:"Te asignan trabajo en equipo.", c:[
+{o:"Participar activamente", p:4, n:14},
+{o:"No hacer nada", p:-4, n:14}
+]},
+{t:"Ves una injusticia.", c:[
+{o:"Denunciarla", p:4, n:15},
+{o:"Callar", p:-4, n:15}
+]},
+{t:"Te equivocas en una decisión.", c:[
+{o:"Aprender del error", p:4, n:16},
+{o:"Justificarte", p:-4, n:16}
+]},
+{t:"Recibes crédito por algo que no hiciste.", c:[
+{o:"Decir la verdad", p:4, n:17},
+{o:"Aceptarlo", p:-4, n:17}
+]},
+{t:"Haces trampa en un juego.", c:[
+{o:"Aceptar la derrota", p:4, n:18},
+{o:"Seguir haciendo trampa", p:-4, n:18}
+]},
+{t:"Hablas mal de alguien.", c:[
+{o:"Disculparte", p:4, n:19},
+{o:"Continuar", p:-4, n:19}
+]},
+{t:"Te piden un favor injusto.", c:[
+{o:"Negarte con respeto", p:4, n:20},
+{o:"Aceptar", p:-4, n:20}
+]},
+{t:"Te equivocas y nadie lo nota.", c:[
+{o:"Reconocerlo", p:4, n:21},
+{o:"Callar", p:-4, n:21}
+]},
+{t:"Ves discriminación.", c:[
+{o:"Defender la igualdad", p:4, n:22},
+{o:"Ignorar", p:-4, n:22}
+]},
+{t:"Alguien necesita apoyo emocional.", c:[
+{o:"Escuchar", p:4, n:23},
+{o:"Alejarte", p:-4, n:23}
+]},
+{t:"Te ofrecen ventaja injusta.", c:[
+{o:"Rechazarla", p:4, n:24},
+{o:"Aceptarla", p:-4, n:24}
+]},
+{t:"Fin del recorrido.", c:[]}
+];
+
+function loadScene(){
+    const s = scenes[scene];
+    document.getElementById("story").innerText = s.t;
+    const ch = document.getElementById("choices");
+    ch.innerHTML = "";
+
+    if(s.c.length === 0){
+        let finalText = "";
+        if(score >= 60){
+            finalText = "🌟 FINAL ÉTICO: Actuaste con valores y responsabilidad.";
+        }else if(score >= 20){
+            finalText = "⚖️ FINAL NEUTRAL: Algunas decisiones fueron éticas.";
+        }else{
+            finalText = "🚨 FINAL NEGATIVO: Tus decisiones tuvieron consecuencias.";
+        }
+        document.getElementById("story").innerText = finalText;
+        return;
+    }
+
+    s.c.forEach(op=>{
+        const b = document.createElement("button");
+        b.innerText = op.o;
+        b.onclick = ()=>{
+            score += op.p;
+            document.getElementById("score").innerText = "Puntaje ético: " + score;
+            (op.p > 0 ? goodSound : badSound).play();
+            scene = op.n;
+            loadScene();
+        };
+        ch.appendChild(b);
+    });
+}
+
+loadScene();
+</script>
+
+</body>
+</html>
